@@ -127,7 +127,6 @@ show_menu() {
     echo "==================================="
     echo "    Jianer - Launcher"
     echo "    简单·迅速·便捷"
-    echo "    by RBfrom"
     echo "==================================="
     echo ""
     echo "服务状态："
@@ -489,6 +488,7 @@ PYTHON_SCRIPT
     echo "注意：请重启 NapCat 使配置生效"
     echo ""
     read -p "按回车继续..."
+    return 0
 }
 
 # 后台启动 NapCat 函数
@@ -542,7 +542,7 @@ start_napcat_background() {
     
     echo "[成功] NapCat 已在后台启动"
     echo ""
-    
+
     while true; do
         read -p "您是否已完成扫码登录？(1=是, 0=否): " login_choice
         if [ "$login_choice" = "1" ]; then
@@ -551,33 +551,23 @@ start_napcat_background() {
             break
         elif [ "$login_choice" = "0" ]; then
             echo ""
-            echo "正在显示日志，请扫描二维码登录..."
-            echo "按 q 返回主菜单..."
+            echo "进入 screen 会话，请扫描二维码登录..."
+            echo "登录完成后按 Ctrl+A 然后按 D 返回本脚本..."
+            sleep 2
+            screen -r napcat
             echo ""
-            
-            while true; do
-                clear
-                echo "==================================="
-                echo "    NapCat 日志 - 请扫码登录"
-                echo "==================================="
+            echo "已返回主菜单"
+            read -p "请确认是否已完成扫码登录？(1=是, 0=否): " login_choice
+            if [ "$login_choice" = "1" ]; then
                 echo ""
-                screen -S napcat -X hardcopy /tmp/napcat_screen.log 2>/dev/null
-                cat /tmp/napcat_screen.log 2>/dev/null | tail -50
-                echo ""
-                echo "按 q 返回主菜单..."
-                
-                read -t 1 -n 1 key 2>/dev/null
-                if [ "$key" = "q" ] || [ "$key" = "Q" ]; then
-                    break
-                fi
-            done
-            
-            clear
-            break
+                echo "[成功] 登录成功！"
+                break
+            fi
         else
             echo "无效选项，请重新输入！"
         fi
     done
+    return 0
 }
 
 # 安装 venv 函数
@@ -839,28 +829,142 @@ while true; do
                                     
                                     # 从assets中获取Jianer_QQ_bot.zip的下载链接
                                     DOWNLOAD_URL=$(echo "$SELECTED_RELEASE" | python3 -c "import sys, json; import json as js; data=js.load(sys.stdin); assets=[a for a in data.get('assets', []) if a.get('name')=='Jianer_QQ_bot.zip']; print(assets[0]['browser_download_url'] if assets else '')" 2>/dev/null)
-                                    
+
                                     if [ -z "$DOWNLOAD_URL" ]; then
                                         echo "[错误] 未找到 Jianer_QQ_bot.zip 文件"
                                         echo ""
                                         read -p "按回车继续..."
                                         continue 2
                                     fi
-                                    
+
                                     echo ""
-                                    echo "正在下载..."
-                                    
+                                    echo "请选择下载镜像："
+                                    echo "  1. GitHub 官方（直连）"
+                                    echo "  2. 加速 1 - gh-proxy.org"
+                                    echo "  3. 加速 2 - github.fufumc.top"
+                                    echo "  4. 自动测速选择最快"
+                                    echo ""
+                                    read -p "请选择 [1-4]: " download_choice
+
+                                    case $download_choice in
+                                        1)
+                                            FINAL_URL="$DOWNLOAD_URL"
+                                            MIRROR_NAME="GitHub 官方"
+                                            ;;
+                                        2)
+                                            FINAL_URL="https://gh-proxy.org/${DOWNLOAD_URL}"
+                                            MIRROR_NAME="gh-proxy.org"
+                                            ;;
+                                        3)
+                                            FINAL_URL="https://github.fufumc.top/${DOWNLOAD_URL}"
+                                            MIRROR_NAME="github.fufumc.top"
+                                            ;;
+                                        4)
+                                            echo ""
+                                            echo "正在测速中，请稍候..."
+                                            echo ""
+
+                                            # 定义镜像列表
+                                            mirrors=()
+                                            mirrors+=("GitHub官方|$DOWNLOAD_URL")
+                                            mirrors+=("gh-proxy.org|https://gh-proxy.org/${DOWNLOAD_URL}")
+                                            mirrors+=("github.fufumc.top|https://github.fufumc.top/${DOWNLOAD_URL}")
+
+                                            # 测速函数 - 使用秒数，不依赖 bc
+                                            test_speed() {
+                                                local name=$1
+                                                local url=$2
+                                                local start_time=$(date +%s)
+
+                                                # 测试连接速度
+                                                if curl -I --connect-timeout 3 --max-time 5 "$url" &>/dev/null; then
+                                                    local end_time=$(date +%s)
+                                                    local duration=$((end_time - start_time))
+                                                    echo "$duration|$name"
+                                                else
+                                                    echo "999|$name"
+                                                fi
+                                            }
+
+                                            # 测速并保存结果
+                                            speeds=()
+                                            for mirror in "${mirrors[@]}"; do
+                                                IFS='|' read -r name url <<< "$mirror"
+                                                result=$(test_speed "$name" "$url")
+                                                speeds+=("$result")
+                                            done
+
+                                            # 找出最快的（最小的秒数）
+                                            fastest_speed=999
+                                            fastest_name=""
+                                            fastest_url=""
+
+                                            for speed_info in "${speeds[@]}"; do
+                                                IFS='|' read -r speed name <<< "$speed_info"
+                                                # 找到对应的 url
+                                                for mirror in "${mirrors[@]}"; do
+                                                    IFS='|' read -r m_name m_url <<< "$mirror"
+                                                    if [ "$m_name" = "$name" ]; then
+                                                        if [ "$speed" -lt "$fastest_speed" ]; then
+                                                            fastest_speed=$speed
+                                                            fastest_name=$name
+                                                            fastest_url=$m_url
+                                                        fi
+                                                        break
+                                                    fi
+                                                done
+                                            done
+
+                                            FINAL_URL="$fastest_url"
+                                            MIRROR_NAME="$fastest_name"
+
+                                            echo "测速结果："
+                                            for speed_info in "${speeds[@]}"; do
+                                                IFS='|' read -r speed name <<< "$speed_info"
+                                                echo "  $name: $speed 秒"
+                                            done
+                                            echo ""
+                                            echo "已选择最快的镜像: $MIRROR_NAME"
+                                            echo ""
+                                            ;;
+                                        *)
+                                            echo "无效选项，使用默认镜像（ghproxy.com）"
+                                            FINAL_URL="https://ghproxy.com/${DOWNLOAD_URL}"
+                                            MIRROR_NAME="ghproxy.com"
+                                            ;;
+                                    esac
+
+                                    echo ""
+                                    echo "正在从 $MIRROR_NAME 下载..."
+
                                     # 下载Jianer_QQ_bot.zip
                                     if [ "$SKIP_DOWNLOAD" = false ]; then
-                                        wget "$DOWNLOAD_URL" -O Jianer_QQ_bot.zip
+                                        wget "$FINAL_URL" -O Jianer_QQ_bot.zip
                                         if [ $? -eq 0 ]; then
                                             echo ""
                                             echo "[成功] 下载成功"
                                         else
-                                            echo "[错误] 下载失败"
+                                            echo "[错误] 从 $MIRROR_NAME 下载失败"
                                             echo ""
-                                            read -p "按回车继续..."
-                                            continue 2
+                                            read -p "是否尝试使用其他镜像下载？(1=是, 0=否): " retry_download
+                                            if [ "$retry_download" = "1" ]; then
+                                                echo ""
+                                                echo "正在尝试备用镜像..."
+                                                wget "$DOWNLOAD_URL" -O Jianer_QQ_bot.zip
+                                                if [ $? -eq 0 ]; then
+                                                    echo ""
+                                                    echo "[成功] 下载成功"
+                                                else
+                                                    echo "[错误] 所有镜像下载失败"
+                                                    echo ""
+                                                    read -p "按回车继续..."
+                                                    continue 2
+                                                fi
+                                            else
+                                                echo ""
+                                                read -p "按回车继续..."
+                                                continue 2
+                                            fi
                                         fi
                                     else
                                         echo "使用已下载的文件"
@@ -965,7 +1069,42 @@ while true; do
             # 检查是否已安装依赖
             if [ -f "requirements.txt" ]; then
                 echo "检测到 requirements.txt 文件，开始安装依赖..."
-                
+                echo ""
+                echo "请选择安装源："
+                echo "  1. 直连 PyPI（官方源，速度可能较慢）"
+                echo "  2. 阿里云镜像（国内推荐）"
+                echo "  3. 清华大学镜像"
+                echo "  4. 中科大镜像"
+                echo ""
+                read -p "请选择 [1-4]: " mirror_choice
+
+                case $mirror_choice in
+                    1)
+                        PIP_MIRROR=""
+                        MIRROR_NAME="PyPI 官方源"
+                        ;;
+                    2)
+                        PIP_MIRROR="-i https://mirrors.aliyun.com/pypi/simple"
+                        MIRROR_NAME="阿里云镜像"
+                        ;;
+                    3)
+                        PIP_MIRROR="-i https://pypi.tuna.tsinghua.edu.cn/simple"
+                        MIRROR_NAME="清华大学镜像"
+                        ;;
+                    4)
+                        PIP_MIRROR="-i https://pypi.mirrors.ustc.edu.cn/simple"
+                        MIRROR_NAME="中科大镜像"
+                        ;;
+                    *)
+                        echo "无效选项，使用默认镜像源（阿里云）"
+                        PIP_MIRROR="-i https://mirrors.aliyun.com/pypi/simple"
+                        MIRROR_NAME="阿里云镜像"
+                        ;;
+                esac
+
+                echo "使用 $MIRROR_NAME 安装依赖..."
+                echo ""
+
                 # 检测 uv 包管理器
                 USE_UV=false
                 if check_uv; then
@@ -974,26 +1113,26 @@ while true; do
                     if [ "$use_uv_choice" = "1" ]; then
                         USE_UV=true
                         echo "正在使用 uv 安装依赖..."
-                        uv pip install -r requirements.txt -i https://mirrors.aliyun.com/pypi/simple
-                        uv pip install setuptools -i https://mirrors.aliyun.com/pypi/simple
+                        uv pip install -r requirements.txt $PIP_MIRROR
+                        uv pip install setuptools $PIP_MIRROR
                         if [ $? -eq 0 ]; then
                             echo "[成功] uv 依赖安装成功"
                         else
                             echo "[错误] uv 依赖安装失败，改用传统方式..."
                             USE_UV=false
-                            pip install -r requirements.txt -i https://mirrors.aliyun.com/pypi/simple
-                            pip install setuptools -i https://mirrors.aliyun.com/pypi/simple
+                            pip install -r requirements.txt $PIP_MIRROR
+                            pip install setuptools $PIP_MIRROR
                         fi
                     else
                         USE_UV=false
                     fi
                 fi
-                
+
                 if [ "$USE_UV" = false ]; then
-                    pip install -r requirements.txt -i https://mirrors.aliyun.com/pypi/simple
-                    pip install setuptools -i https://mirrors.aliyun.com/pypi/simple
+                    pip install -r requirements.txt $PIP_MIRROR
+                    pip install setuptools $PIP_MIRROR
                 fi
-                
+
                 if [ $? -eq 0 ]; then
                     echo "[成功] 依赖安装成功"
                 else
@@ -1102,22 +1241,10 @@ while true; do
                 read -p "按回车继续..."
                 continue
             fi
-            while true; do
-                clear
-                echo "==================================="
-                echo "    Jianer 实时日志"
-                echo "==================================="
-                echo ""
-                screen -S jianer -X hardcopy /tmp/jianer_screen.log 2>/dev/null
-                cat /tmp/jianer_screen.log 2>/dev/null
-                echo ""
-                echo "按 q 返回主菜单..."
-                
-                read -t 1 -n 1 key 2>/dev/null
-                if [ "$key" = "q" ] || [ "$key" = "Q" ]; then
-                    break
-                fi
-            done
+            echo ""
+            echo "进入 screen 会话，按 Ctrl+A 然后按 D 返回主菜单..."
+            sleep 2
+            screen -r jianer
             ;;
         11)
             echo "查看 NapCat 日志..."
@@ -1127,22 +1254,10 @@ while true; do
                 read -p "按回车继续..."
                 continue
             fi
-            while true; do
-                clear
-                echo "==================================="
-                echo "    NapCat 实时日志"
-                echo "==================================="
-                echo ""
-                screen -S napcat -X hardcopy /tmp/napcat_screen.log 2>/dev/null
-                cat /tmp/napcat_screen.log 2>/dev/null | tail -50
-                echo ""
-                echo "按 q 返回主菜单..."
-                
-                read -t 1 -n 1 key 2>/dev/null
-                if [ "$key" = "q" ] || [ "$key" = "Q" ]; then
-                    break
-                fi
-            done
+            echo ""
+            echo "进入 screen 会话，按 Ctrl+A 然后按 D 返回主菜单..."
+            sleep 2
+            screen -r napcat
             ;;
         0)
             echo "退出脚本..."
