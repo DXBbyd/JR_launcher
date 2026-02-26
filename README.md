@@ -99,8 +99,8 @@ curl -L -O "https://RBfrom.havugu.cn/Download/JR_launcher.sh" && bash JR_launche
 
 #### 必须配置的参数
 - **机器人 QQ 号**：你的机器人 QQ 号码
-- **机器人中文名字**：例如：简儿
-- **机器人英文名字**：例如：Jianer
+- **机器人中文名字**：绝对不能取名为“简儿！！！
+- **机器人英文名字**: 自己取一个吧
 - **主人 QQ 号**：拥有最高权限的 QQ 号
 
 #### 连接配置
