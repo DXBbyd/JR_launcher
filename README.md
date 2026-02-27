@@ -1,4 +1,4 @@
-# Jianer Launcher
+# Jianer-QQ-Bot Launcher
 
 一个简单、迅速、便捷的 Jianer QQ 机器人和 NapCat 的启动器脚本。
 
