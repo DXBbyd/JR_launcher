@@ -62,6 +62,7 @@ curl -L -O "https://RBfrom.havugu.cn/Download/JR_Launcher.sh" && bash JR_Launche
 | **【日志】** | | |
 | 10 | 查看 Jianer 日志 | 实时查看 Jianer 运行日志 |
 | 11 | 查看 NapCat 日志 | 实时查看 NapCat 运行日志 |
+| 12 | 切换Jianer的版本  | 顾名思义awa
 | 0 | 退出脚本 | 退出启动器 |
 
 ## 完整使用流程
@@ -86,7 +87,8 @@ curl -L -O "https://RBfrom.havugu.cn/Download/JR_Launcher.sh" && bash JR_Launche
    - 选择菜单选项 `1`
    - 选择要安装的版本
    - 等待下载和解压完成
-   - 配置机器人参数（见下方配置说明）
+   - 补全依赖
+   - 回到菜单选择“配置Jianer”配置你的机器人
 
 6. **配置 NapCat**
    - 选择菜单选项 `5`
