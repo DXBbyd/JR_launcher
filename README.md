@@ -1,4 +1,4 @@
-# Jianer-QQ-Bot Launcher
+9# Jianer-QQ-Bot Launcher
 
 一个简单、迅速、便捷的 Jianer QQ 机器人和 NapCat 的启动器脚本。
 
@@ -23,12 +23,12 @@
 
 ## 快速开始
 # !使用前注意，一定要把脚本放在root目录下！！！否则无法运行别找我！！！
-### 1.手动下载发行版
+### 1.手动下载脚本
  手动从仓库下载脚本，放置在/root目录下
 ```bash 运行脚本
   bash JR_Launcher.sh
 ```
-### 2.通过服务器下载，并运行
+### 2.在root目录下Curl通过服务器下载，并运行
 ```bash
 curl -L -O "https://RBfrom.havugu.cn/Download/JR_Launcher.sh" && bash JR_Launcher.sh
 ```
