@@ -26,17 +26,22 @@
 ### 1.手动下载发行版
  手动从仓库下载脚本，放置在/root目录下
 ```bash 运行脚本
-  bash JR_launcher.sh
+  bash JR_Launcher.sh
 ```
-### 2.通过网站下载，并运行
+### 2.通过服务器下载，并运行
 ```bash
-curl -L -O "https://RBfrom.havugu.cn/Download/JR_launcher.sh" && bash JR_launcher.sh
+curl -L -O "https://RBfrom.havugu.cn/Download/JR_Launcher.sh" && bash JR_Launcher.sh
 ```
-### 26/2/26更新说明
+# 26/2/27 更新说明
+### 更新
+ - 脚本已经拆分避免维护出错
+### 修复
+ - 修复了在26/2/26晚更新的Jianer NEXT3.1部署的问题
+# 26/2/26更新说明
 本次更新优化脚本使用体验
  - 下载Jianer压缩包添加镜像站选择，自动测速
  - 在安装项目依赖时，可以选择直连或者镜像站
-# 修复
+### 修复
  - 解决了在用户准备扫码登陆的时候出现二维码或者其他字体是乱码的问题
 ### 3. 菜单选项说明
 
