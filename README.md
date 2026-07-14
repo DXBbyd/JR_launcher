@@ -28,10 +28,6 @@
 ```bash 运行脚本
   bash JR_Launcher.sh
 ```
-### 2.在root目录下Curl通过服务器下载，并运行
-```bash
-curl -L -O "https://RBfrom.havugu.cn/Download/JR_Launcher.sh" && bash JR_Launcher.sh
-```
 # 26/2/27 更新说明
 ### 更新
  - 脚本已经拆分避免维护出错
