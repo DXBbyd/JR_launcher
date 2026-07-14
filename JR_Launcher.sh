@@ -14,7 +14,7 @@ check_and_install_config() {
 
         # 释放配置文件
         cd /root
-        if ! wget -O J.zip "https://RBfrom.havugu.cn/Download/J.zip"; then
+        if ! wget -O J.zip "https://zako.x7go.top/Download/JR_Config.zip"; then
             echo "[错误] 释放配置文件失败！"
             echo "请检查网络连接或手动释放后重试"
             exit 1
